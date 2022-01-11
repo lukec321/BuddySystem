@@ -24,9 +24,60 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    private RequestQueue requestqueue;
+    private TextView osebe;
+    private String url = "https://buddy-system.azurewebsites.net/Posts";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        requestqueue = Volley.newRequestQueue(getApplicationContext());
+        osebe = (TextView) findViewById(R.id.osebe);
     }
+
+
+    public void prikaziPoste(View view){
+        if(view != null){
+            JsonArrayRequest request = new JsonArrayRequest(url, jsonArrayListener, errorListener);
+            requestqueue.add(request);
+        }
+    }
+private Response.Listener<JSONArray> jsonArrayListener = new Response.Listener<JSONArray>() {
+        @Override
+    public void onResponse(JSONArray response){
+            ArrayList<String> data = new ArrayList<>();
+
+            for(int i = 0; i< response.length(); i++){
+                try{
+                    JSONObject object = response.getJSONObject(i);
+                    String userid = object.getString("UserID");
+                    String name = object.getString("content");
+                    String time = object.getString("PostTime");
+                    data.add(name +" "+ time + " " + userid);
+
+
+                }catch (JSONException e){
+                    e.printStackTrace();
+                    return;
+                }
+            }
+
+            osebe.setText("");
+
+            for(String row: data){
+                String currentText=osebe.getText().toString();
+                osebe.setText(currentText + "\n\n"+row);
+            }
+        }
+};
+
+    private Response.ErrorListener errorListener = new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            Log.d("REST error", error.getMessage());
+
+        }
+    };
+
 }
